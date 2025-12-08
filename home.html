@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MovieHub | Home</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="page-body">
+    <header class="top-nav">
+      <div class="nav-left">
+        <span class="logo-text small" onclick="window.location.href='home.html'">MovieHub</span>
+      </div>
+      <div class="nav-center">
+        <input
+          type="text"
+          id="search-input"
+          class="search-input"
+          placeholder="Search by title..."
+        />
+      </div>
+      <div class="nav-right">
+        <button id="btn-logout" class="btn-secondary">Logout</button>
+      </div>
+    </header>
+
+    <main class="content">
+      <section class="filters">
+        <select id="filter-genre">
+          <option value="">All Genres</option>
+          <!-- filled dynamically from /series/genres or series_type table if you expose it -->
+        </select>
+
+        <select id="filter-language">
+          <option value="">All Languages</option>
+          <!-- filled dynamically -->
+        </select>
+
+        <button id="btn-apply-filters" class="btn-primary">Apply</button>
+      </section>
+
+      <section>
+        <h2>Browse Series</h2>
+        <div id="series-grid" class="card-grid"></div>
+        <p id="series-empty" class="muted"></p>
+      </section>
+    </main>
+
+    <script type="module">
+      import { requireAuth, logout } from "./js/auth.js";
+      import { apiRequest } from "./js/api.js";
+
+      requireAuth();
+
+      const logoutBtn = document.getElementById("btn-logout");
+      logoutBtn.addEventListener("click", () => logout());
+
+      const searchInput = document.getElementById("search-input");
+      const filterGenre = document.getElementById("filter-genre");
+      const filterLanguage = document.getElementById("filter-language");
+      const btnApply = document.getElementById("btn-apply-filters");
+      const seriesGrid = document.getElementById("series-grid");
+      const seriesEmpty = document.getElementById("series-empty");
+
+      async function loadFilters() {
+        // OPTIONAL: if you expose /series/types and /languages API
+        try {
+          const [genres, languages] = await Promise.all([
+            apiRequest("/series/types"),    // implement in backend from adp_series_type
+            apiRequest("/languages"),       // implement from adp_language
+          ]);
+
+          genres.forEach((g) => {
+            const opt = document.createElement("option");
+            opt.value = g.type_code || g.code || g.name;
+            opt.textContent = g.type_name || g.name;
+            filterGenre.appendChild(opt);
+          });
+
+          languages.forEach((l) => {
+            const opt = document.createElement("option");
+            opt.value = l.language_code || l.code;
+            opt.textContent = l.language_name || l.name;
+            filterLanguage.appendChild(opt);
+          });
+        } catch (err) {
+          console.warn("Failed to load filters:", err.message);
+        }
+      }
+
+      async function loadSeries() {
+        const search = searchInput.value.trim();
+        const genre = filterGenre.value;
+        const lang = filterLanguage.value;
+
+        const params = new URLSearchParams();
+        if (search) params.append("search", search);
+        if (genre) params.append("genre", genre);
+        if (lang) params.append("language", lang);
+
+        let path = "/series";
+        const qs = params.toString();
+        if (qs) path += `?${qs}`;
+
+        try {
+          const data = await apiRequest(path);
+          renderSeries(data);
+        } catch (err) {
+          seriesEmpty.textContent = `Failed to load series: ${err.message}`;
+          seriesGrid.innerHTML = "";
+        }
+      }
+
+      function renderSeries(seriesList) {
+        seriesGrid.innerHTML = "";
+        if (!seriesList || seriesList.length === 0) {
+          seriesEmpty.textContent = "No series found.";
+          return;
+        }
+        seriesEmpty.textContent = "";
+
+        seriesList.forEach((s) => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.addEventListener("click", () => {
+            window.location.href = `series.html?id=${encodeURIComponent(s.series_id)}`;
+          });
+
+          card.innerHTML = `
+            <div class="card-image" style="background-image:url('${s.poster_url || ""}')"></div>
+            <div class="card-body">
+              <h3>${s.name}</h3>
+              <p class="muted">${s.origin_country || ""} • ${s.release_date || ""}</p>
+              <p class="muted">
+                Rating: ${s.average_rating != null ? s.average_rating.toFixed(1) : "N/A"}
+              </p>
+            </div>
+          `;
+          seriesGrid.appendChild(card);
+        });
+      }
+
+      searchInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") loadSeries();
+      });
+      btnApply.addEventListener("click", () => loadSeries());
+
+      (async () => {
+        await loadFilters();
+        await loadSeries();
+      })();
+    </script>
+  </body>
+</html>

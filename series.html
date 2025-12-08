@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MovieHub | Series Detail</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="page-body">
+    <header class="top-nav">
+      <div class="nav-left">
+        <span class="logo-text small" onclick="window.location.href='home.html'">MovieHub</span>
+      </div>
+      <div class="nav-right">
+        <button id="btn-back" class="btn-secondary">Back</button>
+        <button id="btn-logout" class="btn-secondary">Logout</button>
+      </div>
+    </header>
+
+    <main class="content">
+      <section id="series-header" class="series-header">
+        <!-- filled by JS -->
+      </section>
+
+      <section>
+        <h2>Episodes</h2>
+        <ul id="episodes-list" class="episode-list"></ul>
+      </section>
+
+      <section>
+        <h2>Feedback & Ratings</h2>
+        <div id="feedback-summary" class="muted"></div>
+        <ul id="feedback-list" class="feedback-list"></ul>
+
+        <h3>Leave your feedback</h3>
+        <form id="feedback-form" class="feedback-form">
+          <label>
+            Rating (1–5)
+            <input type="number" id="feedback-rating" min="1" max="5" required />
+          </label>
+          <label>
+            Comment
+            <textarea id="feedback-text" rows="3"></textarea>
+          </label>
+          <button type="submit" class="btn-primary">Submit Feedback</button>
+          <p id="feedback-error" class="error-text"></p>
+        </form>
+      </section>
+    </main>
+
+    <script type="module" src="./js/series_detail.js"></script>
+  </body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MovieHub | Login</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="auth-body">
+    <div class="auth-container">
+      <div class="auth-card">
+        <h1 class="logo-text">MovieHub</h1>
+
+        <div class="tab-switch">
+          <button id="tab-login" class="tab active">Login</button>
+          <button id="tab-signup" class="tab">Sign Up</button>
+        </div>
+
+        <!-- Login form -->
+        <form id="login-form" class="auth-form">
+          <label>
+            Email or Username
+            <input type="text" id="login-identifier" required />
+          </label>
+          <label>
+            Password
+            <input type="password" id="login-password" required />
+          </label>
+          <button type="submit" class="btn-primary">Login</button>
+          <p id="login-error" class="error-text"></p>
+        </form>
+
+        <!-- Signup form -->
+        <form id="signup-form" class="auth-form hidden">
+          <label>
+            Email
+            <input type="email" id="signup-email" required />
+          </label>
+          <label>
+            Username
+            <input type="text" id="signup-username" required />
+          </label>
+          <label>
+            Password
+            <input type="password" id="signup-password" required />
+          </label>
+          <button type="submit" class="btn-primary">Create Account</button>
+          <p id="signup-error" class="error-text"></p>
+          <p id="signup-success" class="success-text"></p>
+        </form>
+      </div>
+    </div>
+
+    <script type="module">
+      import { login, signup } from "./js/auth.js";
+      import { isAdmin } from "./js/api.js";
+
+      const tabLogin = document.getElementById("tab-login");
+      const tabSignup = document.getElementById("tab-signup");
+      const loginForm = document.getElementById("login-form");
+      const signupForm = document.getElementById("signup-form");
+
+      tabLogin.addEventListener("click", () => {
+        tabLogin.classList.add("active");
+        tabSignup.classList.remove("active");
+        loginForm.classList.remove("hidden");
+        signupForm.classList.add("hidden");
+      });
+
+      tabSignup.addEventListener("click", () => {
+        tabSignup.classList.add("active");
+        tabLogin.classList.remove("active");
+        signupForm.classList.remove("hidden");
+        loginForm.classList.add("hidden");
+      });
+
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const identifier = document.getElementById("login-identifier").value.trim();
+        const password = document.getElementById("login-password").value;
+        const errorEl = document.getElementById("login-error");
+        errorEl.textContent = "";
+
+        try {
+          await login(identifier, password);
+          // redirect based on role
+          if (isAdmin()) {
+            window.location.href = "admin.html";
+          } else {
+            window.location.href = "home.html";
+          }
+        } catch (err) {
+          errorEl.textContent = err.message || "Login failed";
+        }
+      });
+
+      signupForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("signup-email").value.trim();
+        const username = document.getElementById("signup-username").value.trim();
+        const password = document.getElementById("signup-password").value;
+        const errorEl = document.getElementById("signup-error");
+        const successEl = document.getElementById("signup-success");
+        errorEl.textContent = "";
+        successEl.textContent = "";
+
+        try {
+          await signup(email, username, password);
+          successEl.textContent = "Account created! You can now log in.";
+        } catch (err) {
+          errorEl.textContent = err.message || "Sign up failed";
+        }
+      });
+    </script>
+  </body>
+</html>

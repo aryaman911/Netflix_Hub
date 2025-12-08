@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MovieHub | Admin</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="page-body">
+    <header class="top-nav">
+      <div class="nav-left">
+        <span class="logo-text small" onclick="window.location.href='home.html'">MovieHub</span>
+      </div>
+      <div class="nav-right">
+        <button id="btn-logout" class="btn-secondary">Logout</button>
+      </div>
+    </header>
+
+    <main class="content">
+      <section>
+        <h2>Admin – Manage Series</h2>
+
+        <form id="series-form" class="admin-form">
+          <input type="hidden" id="series-id" />
+
+          <label>
+            Name
+            <input type="text" id="series-name" required />
+          </label>
+          <label>
+            Original Language Code
+            <input type="text" id="series-language" placeholder="e.g. EN" required />
+          </label>
+          <label>
+            Origin Country Code
+            <input type="text" id="series-country" placeholder="e.g. US" required />
+          </label>
+          <label>
+            Release Date
+            <input type="date" id="series-release" required />
+          </label>
+          <label>
+            Number of Episodes
+            <input type="number" id="series-num-episodes" min="1" required />
+          </label>
+          <label>
+            Description
+            <textarea id="series-description" rows="3"></textarea>
+          </label>
+          <label>
+            Maturity Rating
+            <input type="text" id="series-maturity" placeholder="PG-13" />
+          </label>
+          <label>
+            Poster URL
+            <input type="url" id="series-poster" />
+          </label>
+          <label>
+            Banner URL
+            <input type="url" id="series-banner" />
+          </label>
+
+          <button type="submit" class="btn-primary" id="series-save-btn">Save</button>
+          <button type="button" class="btn-secondary" id="series-reset-btn">Reset</button>
+          <p id="series-form-error" class="error-text"></p>
+        </form>
+      </section>
+
+      <section>
+        <h2>Existing Series</h2>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Country</th>
+              <th>Language</th>
+              <th>Release</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="series-table-body"></tbody>
+        </table>
+      </section>
+    </main>
+
+    <script type="module" src="./js/admin.js"></script>
+  </body>
+</html>

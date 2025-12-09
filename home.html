@@ -43,25 +43,59 @@
   </main>
 
   <script type="module">
-    import { requireLogin, logout, isAdmin, getUsername } from './js/auth.js';
+    import { isLoggedIn, isAdmin, getUsername, logout } from './js/auth.js';
     import { apiRequest, showToast } from './js/api.js';
-    import { PLACEHOLDER_IMAGE } from './js/config.js';
 
-    // Require login
-    if (!requireLogin()) {
-      throw new Error('Not authenticated');
+    // Placeholder image (using a data URI to avoid external requests)
+    const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
+        <rect fill="#1a1a2e" width="300" height="450"/>
+        <text fill="#e50914" font-family="Arial" font-size="24" x="50%" y="50%" text-anchor="middle">No Image</text>
+      </svg>
+    `);
+
+    // Check login - redirect if not logged in
+    if (!isLoggedIn()) {
+      window.location.href = 'index.html';
+    } else {
+      // Only run the rest if logged in
+      init();
     }
 
-    // Show admin link if admin
-    if (isAdmin()) {
-      document.getElementById('nav-admin').style.display = 'inline';
+    function init() {
+      // Show admin link if admin
+      if (isAdmin()) {
+        document.getElementById('nav-admin').style.display = 'inline';
+      }
+
+      // Set username
+      document.getElementById('nav-username').textContent = getUsername();
+
+      // Logout button
+      document.getElementById('btn-logout').addEventListener('click', () => {
+        logout();
+      });
+
+      // Load filters and series
+      loadFilters();
+      loadSeries();
+
+      // Search button
+      document.getElementById('btn-search').addEventListener('click', () => {
+        loadSeries({
+          search: document.getElementById('search-input').value,
+          genre: document.getElementById('genre-filter').value,
+          language: document.getElementById('language-filter').value,
+        });
+      });
+
+      // Enter key in search
+      document.getElementById('search-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          document.getElementById('btn-search').click();
+        }
+      });
     }
-
-    // Set username
-    document.getElementById('nav-username').textContent = getUsername();
-
-    // Logout button
-    document.getElementById('btn-logout').addEventListener('click', logout);
 
     // Load genres and languages
     async function loadFilters() {
@@ -141,26 +175,6 @@
         grid.innerHTML = `<div class="empty-state">Failed to load series: ${err.message}</div>`;
       }
     }
-
-    // Search button
-    document.getElementById('btn-search').addEventListener('click', () => {
-      loadSeries({
-        search: document.getElementById('search-input').value,
-        genre: document.getElementById('genre-filter').value,
-        language: document.getElementById('language-filter').value,
-      });
-    });
-
-    // Enter key in search
-    document.getElementById('search-input').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        document.getElementById('btn-search').click();
-      }
-    });
-
-    // Initial load
-    loadFilters();
-    loadSeries();
   </script>
 </body>
 </html>

@@ -1,51 +1,90 @@
 // js/auth.js
-import { apiRequest, apiFormRequest, setAuthToken, setUserInfo, clearAuthToken, isAdmin, isLoggedIn } from "./api.js";
+
+import { apiRequest, apiFormRequest, showToast } from "./api.js";
 
 /**
- * Login with username/email and password
+ * Store user session data
  */
-export async function login(usernameOrEmail, password) {
-  const formData = new URLSearchParams();
-  formData.append("username", usernameOrEmail);
-  formData.append("password", password);
+export function setSession(data) {
+  localStorage.setItem("token", data.access_token);
+  localStorage.setItem("user_id", data.user_id);
+  localStorage.setItem("username", data.username);
+  localStorage.setItem("email", data.email);
+  localStorage.setItem("roles", JSON.stringify(data.roles || []));
+}
 
-  const data = await apiFormRequest("/auth/login", formData);
+/**
+ * Clear user session
+ */
+export function clearSession() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user_id");
+  localStorage.removeItem("username");
+  localStorage.removeItem("email");
+  localStorage.removeItem("roles");
+}
 
-  setAuthToken(data.access_token);
-  setUserInfo({
-    roles: data.roles || [],
-    user_id: data.user_id,
+/**
+ * Check if user is logged in
+ */
+export function isLoggedIn() {
+  return !!localStorage.getItem("token");
+}
+
+/**
+ * Check if user is admin
+ */
+export function isAdmin() {
+  try {
+    const roles = JSON.parse(localStorage.getItem("roles") || "[]");
+    return roles.includes("ADMIN");
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Get current username
+ */
+export function getUsername() {
+  return localStorage.getItem("username") || "User";
+}
+
+/**
+ * Login user
+ */
+export async function login(username, password) {
+  const data = await apiFormRequest("/auth/login", {
+    username: username,
+    password: password,
   });
-
+  setSession(data);
   return data;
 }
 
 /**
- * Register a new account
+ * Signup new user
  */
-export async function signup(email, username, password) {
-  const payload = { email, username, password };
-  
-  const data = await apiRequest("/auth/signup", {
+export async function signup(userData) {
+  const response = await apiRequest("/auth/signup", {
     method: "POST",
-    body: JSON.stringify(payload),
+    body: JSON.stringify(userData),
   });
-
-  return data;
+  return response;
 }
 
 /**
- * Logout and redirect
+ * Logout user
  */
 export function logout() {
-  clearAuthToken();
+  clearSession();
   window.location.href = "index.html";
 }
 
 /**
- * Route guard - redirect to login if not authenticated
+ * Require login - redirect to index if not logged in
  */
-export function requireAuth() {
+export function requireLogin() {
   if (!isLoggedIn()) {
     window.location.href = "index.html";
     return false;
@@ -54,26 +93,14 @@ export function requireAuth() {
 }
 
 /**
- * Route guard - redirect if not admin/employee
+ * Require admin - redirect to home if not admin
  */
 export function requireAdmin() {
-  if (!requireAuth()) return false;
+  if (!requireLogin()) return false;
   if (!isAdmin()) {
+    showToast("Admin access required", "error");
     window.location.href = "home.html";
     return false;
   }
   return true;
 }
-
-/**
- * Redirect if already logged in
- */
-export function redirectIfLoggedIn(destination = "home.html") {
-  if (isLoggedIn()) {
-    window.location.href = destination;
-    return true;
-  }
-  return false;
-}
-
-export { isAdmin, isLoggedIn };

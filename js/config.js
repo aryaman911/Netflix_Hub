@@ -1,7 +1,10 @@
 // js/config.js
+
+// API Base URL - Change this to your backend URL
 export const API_BASE_URL = "https://netflix-hub-backend.onrender.com";
 
-// Placeholder images
-export const PLACEHOLDER_POSTER = "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400&h=600&fit=crop";
-export const PLACEHOLDER_BANNER = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1920&h=800&fit=crop";
-export const PLACEHOLDER_EPISODE = "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=400&h=225&fit=crop";
+// Placeholder image for missing posters
+export const PLACEHOLDER_IMAGE = "https://via.placeholder.com/300x450/1a1a2e/e50914?text=No+Image";
+
+// Placeholder banner
+export const PLACEHOLDER_BANNER = "https://via.placeholder.com/1200x400/1a1a2e/e50914?text=Netflix+Hub";

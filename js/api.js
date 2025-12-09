@@ -1,19 +1,11 @@
 // js/api.js
 
-import { API_BASE_URL } from "./config.js";
-
-/**
- * Get the stored auth token
- */
-export function getToken() {
+function getToken() {
   return localStorage.getItem("token");
 }
 
-/**
- * Make an API request with optional authentication
- */
-export async function apiRequest(endpoint, options = {}) {
-  const url = `${API_BASE_URL}${endpoint}`;
+async function apiRequest(endpoint, options = {}) {
+  const url = CONFIG.API_BASE_URL + endpoint;
   const token = getToken();
 
   const headers = {
@@ -22,7 +14,7 @@ export async function apiRequest(endpoint, options = {}) {
   };
 
   if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+    headers["Authorization"] = "Bearer " + token;
   }
 
   const response = await fetch(url, {
@@ -31,17 +23,14 @@ export async function apiRequest(endpoint, options = {}) {
   });
 
   if (!response.ok) {
-    let errorMessage = `Request failed: ${response.status}`;
+    let errorMessage = "Request failed: " + response.status;
     try {
       const errorData = await response.json();
       errorMessage = errorData.detail || errorMessage;
-    } catch (e) {
-      // Ignore JSON parse errors
-    }
+    } catch (e) {}
     throw new Error(errorMessage);
   }
 
-  // Handle 204 No Content
   if (response.status === 204) {
     return null;
   }
@@ -49,11 +38,8 @@ export async function apiRequest(endpoint, options = {}) {
   return response.json();
 }
 
-/**
- * Make a form-urlencoded request (for OAuth2 login)
- */
-export async function apiFormRequest(endpoint, formData) {
-  const url = `${API_BASE_URL}${endpoint}`;
+async function apiFormRequest(endpoint, formData) {
+  const url = CONFIG.API_BASE_URL + endpoint;
 
   const response = await fetch(url, {
     method: "POST",
@@ -64,38 +50,27 @@ export async function apiFormRequest(endpoint, formData) {
   });
 
   if (!response.ok) {
-    let errorMessage = `Request failed: ${response.status}`;
+    let errorMessage = "Request failed: " + response.status;
     try {
       const errorData = await response.json();
       errorMessage = errorData.detail || errorMessage;
-    } catch (e) {
-      // Ignore JSON parse errors
-    }
+    } catch (e) {}
     throw new Error(errorMessage);
   }
 
   return response.json();
 }
 
-/**
- * Show a toast notification
- */
-export function showToast(message, type = "info") {
-  // Remove existing toasts
+function showToast(message, type = "info") {
   const existingToast = document.querySelector(".toast");
-  if (existingToast) {
-    existingToast.remove();
-  }
+  if (existingToast) existingToast.remove();
 
   const toast = document.createElement("div");
-  toast.className = `toast toast-${type}`;
+  toast.className = "toast toast-" + type;
   toast.textContent = message;
   document.body.appendChild(toast);
 
-  // Animate in
   setTimeout(() => toast.classList.add("show"), 10);
-
-  // Remove after 3 seconds
   setTimeout(() => {
     toast.classList.remove("show");
     setTimeout(() => toast.remove(), 300);

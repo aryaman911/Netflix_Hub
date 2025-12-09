@@ -1,8 +1,5 @@
-/* css/styles.css - Netflix-inspired dark theme */
+/* css/styles.css */
 
-/* ============================================================================
-   CSS VARIABLES
-   ============================================================================ */
 :root {
   --bg-primary: #141414;
   --bg-secondary: #1a1a2e;
@@ -17,12 +14,8 @@
   --error: #e50914;
   --warning: #f5c518;
   --border: #333;
-  --shadow: rgba(0, 0, 0, 0.5);
 }
 
-/* ============================================================================
-   RESET & BASE
-   ============================================================================ */
 * {
   margin: 0;
   padding: 0;
@@ -30,10 +23,10 @@
 }
 
 body {
-  font-family: 'Netflix Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  line-height: 1.5;
+  line-height: 1.6;
   min-height: 100vh;
 }
 
@@ -46,20 +39,14 @@ a:hover {
   color: var(--accent);
 }
 
-img {
-  max-width: 100%;
-  height: auto;
-}
-
-/* ============================================================================
-   NAVBAR
-   ============================================================================ */
+/* Navbar */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 4%;
-  background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border);
   position: fixed;
   top: 0;
   left: 0;
@@ -67,16 +54,10 @@ img {
   z-index: 100;
 }
 
-.navbar.solid {
-  background: var(--bg-primary);
-  border-bottom: 1px solid var(--border);
-}
-
 .logo {
   font-size: 1.8rem;
   font-weight: 700;
   color: var(--accent);
-  letter-spacing: -1px;
 }
 
 .nav-links {
@@ -87,12 +68,10 @@ img {
 
 .nav-link {
   color: var(--text-secondary);
-  font-size: 0.9rem;
   transition: color 0.2s;
 }
 
-.nav-link:hover,
-.nav-link.active {
+.nav-link:hover, .nav-link.active {
   color: var(--text-primary);
 }
 
@@ -104,18 +83,14 @@ img {
 
 .nav-username {
   color: var(--text-secondary);
-  font-size: 0.9rem;
 }
 
-/* ============================================================================
-   BUTTONS
-   ============================================================================ */
+/* Buttons */
 .btn {
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 4px;
   font-size: 1rem;
-  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -156,11 +131,10 @@ img {
 
 .btn-danger {
   background: var(--error);
+  color: white;
 }
 
-/* ============================================================================
-   FORMS
-   ============================================================================ */
+/* Forms */
 .form-group {
   margin-bottom: 1rem;
 }
@@ -169,7 +143,6 @@ img {
   display: block;
   margin-bottom: 0.5rem;
   color: var(--text-secondary);
-  font-size: 0.9rem;
 }
 
 .form-group input,
@@ -191,10 +164,6 @@ img {
   border-color: var(--accent);
 }
 
-.form-group input::placeholder {
-  color: var(--text-muted);
-}
-
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -207,15 +176,10 @@ img {
   margin-top: 0.5rem;
 }
 
-/* ============================================================================
-   AUTH PAGES (Login/Signup)
-   ============================================================================ */
+/* Auth Page */
 .auth-page {
   min-height: 100vh;
-  background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)),
-              url('https://assets.nflxext.com/ffe/siteui/vlv3/93da5c27-be66-427c-8b72-5cb39d275279/94eb5ad7-10d8-4571-9b50-dc24dd6d21e3/US-en-20210719-popsignuptwoweeks-perspective_alpha_website_small.jpg');
-  background-size: cover;
-  background-position: center;
+  background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), #1a1a2e;
   display: flex;
   flex-direction: column;
 }
@@ -229,16 +193,11 @@ img {
 }
 
 .auth-box {
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.8);
   padding: 3rem;
   border-radius: 8px;
   width: 100%;
   max-width: 450px;
-}
-
-.auth-box h1 {
-  margin-bottom: 1.5rem;
-  font-size: 2rem;
 }
 
 .auth-tabs {
@@ -256,7 +215,6 @@ img {
   font-size: 1rem;
   cursor: pointer;
   border-bottom: 2px solid transparent;
-  transition: all 0.2s;
 }
 
 .auth-tab.active {
@@ -273,54 +231,22 @@ img {
 }
 
 .signup-scroll {
-  max-height: 60vh;
+  max-height: 55vh;
   overflow-y: auto;
   padding-right: 0.5rem;
 }
 
-/* ============================================================================
-   HOME PAGE
-   ============================================================================ */
+/* Main Content */
 .main-content {
-  padding-top: 70px;
+  padding-top: 80px;
   min-height: 100vh;
 }
 
-.hero {
-  height: 80vh;
-  background: linear-gradient(to bottom, transparent 0%, var(--bg-primary) 100%),
-              linear-gradient(to right, var(--bg-primary) 0%, transparent 50%),
-              url('https://assets.nflxext.com/ffe/siteui/vlv3/93da5c27-be66-427c-8b72-5cb39d275279/94eb5ad7-10d8-4571-9b50-dc24dd6d21e3/US-en-20210719-popsignuptwoweeks-perspective_alpha_website_small.jpg');
-  background-size: cover;
-  background-position: center;
-  display: flex;
-  align-items: center;
-  padding: 0 4%;
-}
-
-.hero-content {
-  max-width: 500px;
-}
-
-.hero-content h1 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.hero-content p {
-  font-size: 1.2rem;
-  color: var(--text-secondary);
-  margin-bottom: 1.5rem;
-}
-
-/* ============================================================================
-   FILTERS
-   ============================================================================ */
+/* Filters */
 .filters {
   display: flex;
   gap: 1rem;
   padding: 1.5rem 4%;
-  background: var(--bg-primary);
   flex-wrap: wrap;
   align-items: center;
 }
@@ -332,7 +258,6 @@ img {
   border: 1px solid var(--border);
   border-radius: 4px;
   color: var(--text-primary);
-  font-size: 0.9rem;
   min-width: 150px;
 }
 
@@ -340,74 +265,68 @@ img {
   min-width: 250px;
 }
 
-/* ============================================================================
-   SERIES GRID
-   ============================================================================ */
+/* Section Title */
 .section-title {
   padding: 0 4%;
-  margin: 2rem 0 1rem;
+  margin: 1rem 0;
   font-size: 1.5rem;
 }
 
+/* Series Grid */
 .series-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 1.5rem;
-  padding: 0 4% 3rem;
+  padding: 1rem 4% 3rem;
 }
 
 .series-card {
   background: var(--bg-card);
   border-radius: 8px;
   overflow: hidden;
-  transition: transform 0.3s, box-shadow 0.3s;
   cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .series-card:hover {
-  transform: scale(1.05);
-  box-shadow: 0 10px 30px var(--shadow);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
 .series-card img {
   width: 100%;
   aspect-ratio: 2/3;
   object-fit: cover;
+  background: var(--bg-secondary);
 }
 
 .series-card-info {
-  padding: 1rem;
+  padding: 0.75rem;
 }
 
 .series-card-title {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 500;
-  margin-bottom: 0.5rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-bottom: 0.25rem;
 }
 
 .series-card-meta {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
 }
 
 .series-card-rating {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
   color: var(--warning);
 }
 
-/* ============================================================================
-   SERIES DETAIL PAGE
-   ============================================================================ */
+/* Series Detail Page */
 .series-banner {
-  height: 60vh;
+  height: 50vh;
   background-size: cover;
   background-position: center;
   position: relative;
@@ -419,7 +338,7 @@ img {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 50%;
+  height: 60%;
   background: linear-gradient(transparent, var(--bg-primary));
 }
 
@@ -427,27 +346,21 @@ img {
   position: relative;
   z-index: 1;
   padding: 0 4%;
-  margin-top: -200px;
+  margin-top: -150px;
   display: grid;
-  grid-template-columns: 250px 1fr;
+  grid-template-columns: 200px 1fr;
   gap: 2rem;
-}
-
-.series-poster {
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px var(--shadow);
 }
 
 .series-poster img {
   width: 100%;
-  aspect-ratio: 2/3;
-  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
 .series-details h1 {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
 }
 
 .series-meta {
@@ -459,27 +372,18 @@ img {
   font-size: 0.9rem;
 }
 
-.series-meta span {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
 .series-description {
   color: var(--text-secondary);
   margin-bottom: 1.5rem;
-  line-height: 1.7;
+  max-width: 800px;
 }
 
 .series-actions {
   display: flex;
   gap: 1rem;
-  margin-bottom: 2rem;
 }
 
-/* ============================================================================
-   RATING SECTION
-   ============================================================================ */
+/* Rating Section */
 .rating-section {
   padding: 2rem 4%;
   background: var(--bg-secondary);
@@ -487,37 +391,32 @@ img {
 }
 
 .rating-section h2 {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .rating-summary {
   display: flex;
   align-items: center;
-  gap: 2rem;
-  margin-bottom: 2rem;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .rating-big {
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-weight: 700;
   color: var(--warning);
 }
 
-.rating-count {
-  color: var(--text-secondary);
-}
-
 .star-input {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.25rem;
   margin-bottom: 1rem;
 }
 
 .star-input span {
-  font-size: 2rem;
+  font-size: 1.8rem;
   cursor: pointer;
   color: var(--text-muted);
-  transition: color 0.2s;
 }
 
 .star-input span:hover,
@@ -526,14 +425,14 @@ img {
 }
 
 .reviews-list {
-  margin-top: 2rem;
+  margin-top: 1.5rem;
 }
 
 .review-item {
   background: var(--bg-card);
   padding: 1rem;
   border-radius: 8px;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .review-header {
@@ -552,17 +451,12 @@ img {
 
 .review-text {
   color: var(--text-secondary);
+  font-size: 0.9rem;
 }
 
-/* ============================================================================
-   EPISODES LIST
-   ============================================================================ */
+/* Episodes */
 .episodes-section {
   padding: 2rem 4%;
-}
-
-.episodes-section h2 {
-  margin-bottom: 1.5rem;
 }
 
 .episode-item {
@@ -571,71 +465,55 @@ img {
   padding: 1rem;
   background: var(--bg-card);
   border-radius: 8px;
-  margin-bottom: 1rem;
-  transition: background 0.2s;
-}
-
-.episode-item:hover {
-  background: var(--bg-input);
+  margin-bottom: 0.75rem;
 }
 
 .episode-number {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-muted);
-  min-width: 50px;
+  min-width: 40px;
 }
 
 .episode-info h3 {
   margin-bottom: 0.25rem;
+  font-size: 1rem;
 }
 
 .episode-info p {
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
-/* ============================================================================
-   WATCHLIST PAGE
-   ============================================================================ */
+/* Watchlist */
 .watchlist-empty {
   text-align: center;
   padding: 4rem 2rem;
   color: var(--text-secondary);
+  grid-column: 1 / -1;
 }
 
-.watchlist-empty h2 {
-  margin-bottom: 1rem;
-}
-
-/* ============================================================================
-   ADMIN PAGE
-   ============================================================================ */
+/* Admin */
 .admin-container {
   padding: 100px 4% 3rem;
-}
-
-.admin-container h1 {
-  margin-bottom: 2rem;
 }
 
 .admin-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
+  margin-top: 2rem;
 }
 
-.admin-form-section,
-.admin-list-section {
+.admin-section {
   background: var(--bg-card);
   padding: 1.5rem;
   border-radius: 8px;
 }
 
-.admin-form-section h2,
-.admin-list-section h2 {
+.admin-section h2 {
   margin-bottom: 1.5rem;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
 }
 
 .admin-table {
@@ -656,13 +534,7 @@ img {
   font-size: 0.85rem;
 }
 
-.admin-table tr:hover {
-  background: var(--bg-input);
-}
-
-/* ============================================================================
-   TOAST NOTIFICATIONS
-   ============================================================================ */
+/* Toast */
 .toast {
   position: fixed;
   bottom: 2rem;
@@ -670,7 +542,6 @@ img {
   padding: 1rem 1.5rem;
   border-radius: 8px;
   color: white;
-  font-size: 0.95rem;
   z-index: 1000;
   transform: translateY(100px);
   opacity: 0;
@@ -682,89 +553,25 @@ img {
   opacity: 1;
 }
 
-.toast-success {
-  background: var(--success);
-}
+.toast-success { background: var(--success); }
+.toast-error { background: var(--error); }
+.toast-info { background: #0077b6; }
 
-.toast-error {
-  background: var(--error);
-}
-
-.toast-info {
-  background: #0077b6;
-}
-
-/* ============================================================================
-   LOADING & EMPTY STATES
-   ============================================================================ */
-.loading {
+/* Loading & Empty */
+.loading, .empty-state {
   text-align: center;
   padding: 3rem;
   color: var(--text-secondary);
+  grid-column: 1 / -1;
 }
 
-.loading::after {
-  content: '';
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--accent);
-  border-top-color: transparent;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-left: 0.5rem;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: var(--text-secondary);
-}
-
-/* ============================================================================
-   RESPONSIVE
-   ============================================================================ */
+/* Responsive */
 @media (max-width: 768px) {
-  .navbar {
-    padding: 1rem;
-  }
-  
-  .nav-links {
-    gap: 1rem;
-  }
-  
-  .hero-content h1 {
-    font-size: 2rem;
-  }
-  
-  .series-info {
-    grid-template-columns: 1fr;
-    margin-top: -100px;
-  }
-  
-  .series-poster {
-    max-width: 200px;
-    margin: 0 auto;
-  }
-  
-  .admin-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .filters {
-    flex-direction: column;
-  }
-  
-  .filters input,
-  .filters select {
-    width: 100%;
-  }
+  .nav-links { gap: 1rem; }
+  .series-info { grid-template-columns: 1fr; margin-top: -50px; }
+  .series-poster { max-width: 150px; margin: 0 auto; }
+  .admin-grid { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+  .filters { flex-direction: column; }
+  .filters input, .filters select { width: 100%; }
 }

@@ -3,27 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Netflix Hub - Home</title>
+  <title>MovieHub - Home</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar solid">
+  <nav class="navbar">
     <div class="logo">MOVIEHUB</div>
     <div class="nav-links">
       <a href="home.html" class="nav-link active">Home</a>
       <a href="watchlist.html" class="nav-link">My List</a>
-      <a href="admin.html" class="nav-link" id="nav-admin" style="display: none;">Admin</a>
+      <a href="admin.html" class="nav-link" id="nav-admin" style="display:none;">Admin</a>
     </div>
     <div class="nav-user">
       <span class="nav-username" id="nav-username">User</span>
-      <button class="btn btn-outline btn-small" id="btn-logout">Logout</button>
+      <button class="btn btn-outline btn-small" onclick="logout()">Logout</button>
     </div>
   </nav>
 
-  <!-- Main Content -->
   <main class="main-content">
-    <!-- Filters -->
     <div class="filters">
       <input type="text" id="search-input" placeholder="Search series...">
       <select id="genre-filter">
@@ -32,115 +29,71 @@
       <select id="language-filter">
         <option value="">All Languages</option>
       </select>
-      <button class="btn btn-secondary" id="btn-search">Search</button>
+      <button class="btn btn-secondary" onclick="searchSeries()">Search</button>
     </div>
 
-    <!-- Series Grid -->
     <h2 class="section-title">All Series</h2>
     <div class="series-grid" id="series-grid">
-      <div class="loading">Loading series...</div>
+      <div class="loading">Loading...</div>
     </div>
   </main>
 
-  <script type="module">
-    import { isLoggedIn, isAdmin, getUsername, logout } from './js/auth.js';
-    import { apiRequest, showToast } from './js/api.js';
-
-    // Placeholder image (using a data URI to avoid external requests)
-    const PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent(`
-      <svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
-        <rect fill="#1a1a2e" width="300" height="450"/>
-        <text fill="#e50914" font-family="Arial" font-size="24" x="50%" y="50%" text-anchor="middle">No Image</text>
-      </svg>
-    `);
-
-    // Check login - redirect if not logged in
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // Check login
     if (!isLoggedIn()) {
       window.location.href = 'index.html';
-    } else {
-      // Only run the rest if logged in
-      init();
     }
 
-    function init() {
-      // Show admin link if admin
-      if (isAdmin()) {
-        document.getElementById('nav-admin').style.display = 'inline';
-      }
-
-      // Set username
-      document.getElementById('nav-username').textContent = getUsername();
-
-      // Logout button
-      document.getElementById('btn-logout').addEventListener('click', () => {
-        logout();
-      });
-
-      // Load filters and series
-      loadFilters();
-      loadSeries();
-
-      // Search button
-      document.getElementById('btn-search').addEventListener('click', () => {
-        loadSeries({
-          search: document.getElementById('search-input').value,
-          genre: document.getElementById('genre-filter').value,
-          language: document.getElementById('language-filter').value,
-        });
-      });
-
-      // Enter key in search
-      document.getElementById('search-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-          document.getElementById('btn-search').click();
-        }
-      });
+    // Show admin link
+    if (isAdmin()) {
+      document.getElementById('nav-admin').style.display = 'inline';
     }
 
-    // Load genres and languages
+    // Set username
+    document.getElementById('nav-username').textContent = getUsername();
+
+    // Load on page load
+    loadFilters();
+    loadSeries();
+
+    // Enter key search
+    document.getElementById('search-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') searchSeries();
+    });
+
     async function loadFilters() {
       try {
-        const [genres, languages] = await Promise.all([
-          apiRequest('/reference/genres'),
-          apiRequest('/reference/languages'),
-        ]);
+        const genres = await apiRequest('/reference/genres');
+        const languages = await apiRequest('/reference/languages');
 
         const genreSelect = document.getElementById('genre-filter');
         genres.forEach(g => {
-          const opt = document.createElement('option');
-          opt.value = g.type_code;
-          opt.textContent = g.type_name;
-          genreSelect.appendChild(opt);
+          genreSelect.innerHTML += `<option value="${g.type_code}">${g.type_name}</option>`;
         });
 
         const langSelect = document.getElementById('language-filter');
         languages.forEach(l => {
-          const opt = document.createElement('option');
-          opt.value = l.language_code;
-          opt.textContent = l.language_name;
-          langSelect.appendChild(opt);
+          langSelect.innerHTML += `<option value="${l.language_code}">${l.language_name}</option>`;
         });
       } catch (err) {
         console.error('Failed to load filters:', err);
       }
     }
 
-    // Load series
-    async function loadSeries(params = {}) {
+    async function loadSeries(search = '', genre = '', language = '') {
       const grid = document.getElementById('series-grid');
-      grid.innerHTML = '<div class="loading">Loading series...</div>';
+      grid.innerHTML = '<div class="loading">Loading...</div>';
 
       try {
         let url = '/series';
-        const queryParams = new URLSearchParams();
-        
-        if (params.search) queryParams.append('search', params.search);
-        if (params.genre) queryParams.append('genre', params.genre);
-        if (params.language) queryParams.append('language', params.language);
-        
-        if (queryParams.toString()) {
-          url += '?' + queryParams.toString();
-        }
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (genre) params.append('genre', genre);
+        if (language) params.append('language', language);
+        if (params.toString()) url += '?' + params.toString();
 
         const series = await apiRequest(url);
 
@@ -150,30 +103,30 @@
         }
 
         grid.innerHTML = series.map(s => `
-          <div class="series-card" data-id="${s.series_id}">
-            <img src="${s.poster_url || PLACEHOLDER_IMAGE}" alt="${s.name}" onerror="this.src='${PLACEHOLDER_IMAGE}'">
+          <div class="series-card" onclick="window.location.href='series.html?id=${s.series_id}'">
+            <img src="${s.poster_url || CONFIG.PLACEHOLDER_IMAGE}" 
+                 onerror="this.src='${CONFIG.PLACEHOLDER_IMAGE}'" 
+                 alt="${s.name}">
             <div class="series-card-info">
               <div class="series-card-title">${s.name}</div>
               <div class="series-card-meta">
                 <span>${s.maturity_rating || 'NR'}</span>
-                <span class="series-card-rating">
-                  ${s.avg_rating ? '★ ' + s.avg_rating.toFixed(1) : ''}
-                </span>
+                <span class="series-card-rating">${s.avg_rating ? '★ ' + s.avg_rating.toFixed(1) : ''}</span>
               </div>
             </div>
           </div>
         `).join('');
-
-        // Click handlers
-        grid.querySelectorAll('.series-card').forEach(card => {
-          card.addEventListener('click', () => {
-            window.location.href = `series.html?id=${card.dataset.id}`;
-          });
-        });
-
       } catch (err) {
-        grid.innerHTML = `<div class="empty-state">Failed to load series: ${err.message}</div>`;
+        grid.innerHTML = '<div class="empty-state">Failed to load: ' + err.message + '</div>';
       }
+    }
+
+    function searchSeries() {
+      loadSeries(
+        document.getElementById('search-input').value,
+        document.getElementById('genre-filter').value,
+        document.getElementById('language-filter').value
+      );
     }
   </script>
 </body>

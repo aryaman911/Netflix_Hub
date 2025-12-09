@@ -3,54 +3,45 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Netflix Hub - My List</title>
+  <title>MovieHub - My List</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar solid">
+  <nav class="navbar">
     <div class="logo">MOVIEHUB</div>
     <div class="nav-links">
       <a href="home.html" class="nav-link">Home</a>
       <a href="watchlist.html" class="nav-link active">My List</a>
-      <a href="admin.html" class="nav-link" id="nav-admin" style="display: none;">Admin</a>
+      <a href="admin.html" class="nav-link" id="nav-admin" style="display:none;">Admin</a>
     </div>
     <div class="nav-user">
       <span class="nav-username" id="nav-username">User</span>
-      <button class="btn btn-outline btn-small" id="btn-logout">Logout</button>
+      <button class="btn btn-outline btn-small" onclick="logout()">Logout</button>
     </div>
   </nav>
 
-  <!-- Main Content -->
   <main class="main-content">
     <h2 class="section-title">My List</h2>
     <div class="series-grid" id="watchlist-grid">
-      <div class="loading">Loading your list...</div>
+      <div class="loading">Loading...</div>
     </div>
   </main>
 
-  <script type="module">
-    import { requireLogin, logout, isAdmin, getUsername } from './js/auth.js';
-    import { apiRequest, showToast } from './js/api.js';
-    import { PLACEHOLDER_IMAGE } from './js/config.js';
-
-    // Require login
-    if (!requireLogin()) {
-      throw new Error('Not authenticated');
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    if (!isLoggedIn()) {
+      window.location.href = 'index.html';
     }
 
-    // Show admin link if admin
     if (isAdmin()) {
       document.getElementById('nav-admin').style.display = 'inline';
     }
-
-    // Set username
     document.getElementById('nav-username').textContent = getUsername();
 
-    // Logout button
-    document.getElementById('btn-logout').addEventListener('click', logout);
+    loadWatchlist();
 
-    // Load watchlist
     async function loadWatchlist() {
       const grid = document.getElementById('watchlist-grid');
 
@@ -59,58 +50,44 @@
 
         if (!items.length) {
           grid.innerHTML = `
-            <div class="watchlist-empty" style="grid-column: 1 / -1;">
+            <div class="watchlist-empty">
               <h2>Your list is empty</h2>
               <p>Add series to your list to watch later</p>
-              <a href="home.html" class="btn btn-primary" style="margin-top: 1rem;">Browse Series</a>
+              <a href="home.html" class="btn btn-primary" style="margin-top:1rem;">Browse Series</a>
             </div>
           `;
           return;
         }
 
         grid.innerHTML = items.map(item => `
-          <div class="series-card" data-id="${item.series_id}">
-            <img src="${item.poster_url || PLACEHOLDER_IMAGE}" alt="${item.series_name}" onerror="this.src='${PLACEHOLDER_IMAGE}'">
+          <div class="series-card">
+            <img src="${item.poster_url || CONFIG.PLACEHOLDER_IMAGE}" 
+                 onclick="window.location.href='series.html?id=${item.series_id}'"
+                 onerror="this.src='${CONFIG.PLACEHOLDER_IMAGE}'" 
+                 alt="${item.series_name}">
             <div class="series-card-info">
               <div class="series-card-title">${item.series_name}</div>
               <div class="series-card-meta">
                 <span>Added ${new Date(item.added_at).toLocaleDateString()}</span>
-                <button class="btn btn-small btn-danger" data-remove="${item.series_id}">Remove</button>
+                <button class="btn btn-small btn-danger" onclick="removeFromList(${item.series_id})">Remove</button>
               </div>
             </div>
           </div>
         `).join('');
-
-        // Click handlers for cards
-        grid.querySelectorAll('.series-card').forEach(card => {
-          card.addEventListener('click', (e) => {
-            if (e.target.closest('button')) return; // Don't navigate if clicking remove
-            window.location.href = `series.html?id=${card.dataset.id}`;
-          });
-        });
-
-        // Remove buttons
-        grid.querySelectorAll('[data-remove]').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const seriesId = btn.dataset.remove;
-            try {
-              await apiRequest(`/me/watchlist/${seriesId}`, { method: 'DELETE' });
-              showToast('Removed from list', 'success');
-              loadWatchlist();
-            } catch (err) {
-              showToast('Failed to remove: ' + err.message, 'error');
-            }
-          });
-        });
-
       } catch (err) {
-        grid.innerHTML = `<div class="empty-state">Failed to load watchlist: ${err.message}</div>`;
+        grid.innerHTML = '<div class="empty-state">Failed to load: ' + err.message + '</div>';
       }
     }
 
-    // Initial load
-    loadWatchlist();
+    async function removeFromList(seriesId) {
+      try {
+        await apiRequest('/me/watchlist/' + seriesId, { method: 'DELETE' });
+        showToast('Removed from list', 'success');
+        loadWatchlist();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
   </script>
 </body>
 </html>

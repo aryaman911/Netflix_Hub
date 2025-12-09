@@ -3,293 +3,240 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Netflix Hub - Series</title>
+  <title>MovieHub - Series</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <!-- Navbar -->
   <nav class="navbar">
     <div class="logo">MOVIEHUB</div>
     <div class="nav-links">
       <a href="home.html" class="nav-link">Home</a>
       <a href="watchlist.html" class="nav-link">My List</a>
-      <a href="admin.html" class="nav-link" id="nav-admin" style="display: none;">Admin</a>
+      <a href="admin.html" class="nav-link" id="nav-admin" style="display:none;">Admin</a>
     </div>
     <div class="nav-user">
       <span class="nav-username" id="nav-username">User</span>
-      <button class="btn btn-outline btn-small" id="btn-logout">Logout</button>
+      <button class="btn btn-outline btn-small" onclick="logout()">Logout</button>
     </div>
   </nav>
 
-  <!-- Main Content -->
-  <main class="main-content">
-    <!-- Banner -->
+  <main class="main-content" style="padding-top:60px;">
     <div class="series-banner" id="series-banner"></div>
-
-    <!-- Series Info -->
+    
     <div class="series-info">
-      <div class="series-poster" id="series-poster">
-        <img src="" alt="">
+      <div class="series-poster">
+        <img id="series-poster-img" src="" alt="">
       </div>
       <div class="series-details">
         <h1 id="series-title">Loading...</h1>
         <div class="series-meta" id="series-meta"></div>
         <p class="series-description" id="series-description"></p>
         <div class="series-actions">
-          <button class="btn btn-primary" id="btn-watchlist">+ Add to My List</button>
+          <button class="btn btn-primary" id="btn-watchlist" onclick="toggleWatchlist()">+ Add to My List</button>
         </div>
       </div>
     </div>
 
-    <!-- Rating Section -->
     <section class="rating-section">
       <h2>Ratings & Reviews</h2>
       <div class="rating-summary">
         <span class="rating-big" id="avg-rating">-</span>
-        <div>
-          <div id="rating-count">No ratings yet</div>
-        </div>
+        <span id="rating-count">No ratings yet</span>
       </div>
       
       <h3>Rate this series</h3>
-      <div class="star-input" id="star-input">
-        <span data-value="1">☆</span>
-        <span data-value="2">☆</span>
-        <span data-value="3">☆</span>
-        <span data-value="4">☆</span>
-        <span data-value="5">☆</span>
+      <div class="star-input" id="star-input"></div>
+      <div class="form-group" style="max-width:500px;">
+        <textarea id="review-text" placeholder="Write a review (optional)" rows="3"></textarea>
       </div>
-      <div class="form-group">
-        <textarea id="review-text" placeholder="Write a review (optional)" rows="3" style="width: 100%; max-width: 500px;"></textarea>
-      </div>
-      <button class="btn btn-primary" id="btn-submit-rating">Submit Rating</button>
-
+      <button class="btn btn-primary" onclick="submitRating()">Submit Rating</button>
+      
       <div class="reviews-list" id="reviews-list"></div>
     </section>
 
-    <!-- Episodes Section -->
     <section class="episodes-section">
       <h2>Episodes</h2>
       <div id="episodes-list"></div>
     </section>
   </main>
 
-  <script type="module">
-    import { requireLogin, logout, isAdmin, getUsername } from './js/auth.js';
-    import { apiRequest, showToast } from './js/api.js';
-    import { PLACEHOLDER_IMAGE, PLACEHOLDER_BANNER } from './js/config.js';
-
-    // Require login
-    if (!requireLogin()) {
-      throw new Error('Not authenticated');
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    if (!isLoggedIn()) {
+      window.location.href = 'index.html';
     }
 
-    // Show admin link if admin
     if (isAdmin()) {
       document.getElementById('nav-admin').style.display = 'inline';
     }
-
-    // Set username
     document.getElementById('nav-username').textContent = getUsername();
 
-    // Logout button
-    document.getElementById('btn-logout').addEventListener('click', logout);
-
-    // Get series ID from URL
     const params = new URLSearchParams(window.location.search);
     const seriesId = params.get('id');
-
-    if (!seriesId) {
-      window.location.href = 'home.html';
-      throw new Error('No series ID');
-    }
+    if (!seriesId) window.location.href = 'home.html';
 
     let currentRating = 0;
-    let isInWatchlist = false;
+    let inWatchlist = false;
 
-    // Load series details
+    // Create stars
+    const starInput = document.getElementById('star-input');
+    for (let i = 1; i <= 5; i++) {
+      const star = document.createElement('span');
+      star.textContent = '☆';
+      star.dataset.value = i;
+      star.onclick = () => setRating(i);
+      star.onmouseenter = () => highlightStars(i);
+      star.onmouseleave = () => highlightStars(currentRating);
+      starInput.appendChild(star);
+    }
+
+    function setRating(val) {
+      currentRating = val;
+      highlightStars(val);
+    }
+
+    function highlightStars(val) {
+      const stars = starInput.querySelectorAll('span');
+      stars.forEach((s, i) => {
+        s.textContent = i < val ? '★' : '☆';
+        s.classList.toggle('active', i < val);
+      });
+    }
+
+    // Load data
+    loadSeries();
+    loadFeedback();
+    checkWatchlist();
+
     async function loadSeries() {
       try {
-        const series = await apiRequest(`/series/${seriesId}`);
+        const s = await apiRequest('/series/' + seriesId);
         
-        // Update page
-        document.title = `Netflix Hub - ${series.name}`;
-        document.getElementById('series-title').textContent = series.name;
-        document.getElementById('series-description').textContent = series.description || 'No description available.';
+        document.title = 'MovieHub - ' + s.name;
+        document.getElementById('series-title').textContent = s.name;
+        document.getElementById('series-description').textContent = s.description || 'No description available.';
         
-        // Banner
-        const banner = document.getElementById('series-banner');
-        banner.style.backgroundImage = `url(${series.banner_url || PLACEHOLDER_BANNER})`;
+        document.getElementById('series-banner').style.backgroundImage = 
+          'url(' + (s.banner_url || CONFIG.PLACEHOLDER_BANNER) + ')';
         
-        // Poster
-        const posterImg = document.querySelector('#series-poster img');
-        posterImg.src = series.poster_url || PLACEHOLDER_IMAGE;
-        posterImg.alt = series.name;
-        posterImg.onerror = () => { posterImg.src = PLACEHOLDER_IMAGE; };
+        const posterImg = document.getElementById('series-poster-img');
+        posterImg.src = s.poster_url || CONFIG.PLACEHOLDER_IMAGE;
+        posterImg.onerror = () => posterImg.src = CONFIG.PLACEHOLDER_IMAGE;
         
-        // Meta
-        const metaHtml = [
-          series.release_date ? `<span>📅 ${series.release_date}</span>` : '',
-          series.maturity_rating ? `<span>🔞 ${series.maturity_rating}</span>` : '',
-          series.origin_country ? `<span>🌍 ${series.origin_country}</span>` : '',
-          series.num_episodes ? `<span>📺 ${series.num_episodes} episodes</span>` : '',
-          series.genres?.length ? `<span>🎭 ${series.genres.join(', ')}</span>` : '',
-        ].filter(Boolean).join('');
-        document.getElementById('series-meta').innerHTML = metaHtml;
-        
-        // Rating
-        if (series.avg_rating) {
-          document.getElementById('avg-rating').textContent = series.avg_rating.toFixed(1);
-          document.getElementById('rating-count').textContent = `${series.rating_count} ratings`;
-        }
+        let meta = '';
+        if (s.release_date) meta += '<span>📅 ' + s.release_date + '</span>';
+        if (s.maturity_rating) meta += '<span>🔞 ' + s.maturity_rating + '</span>';
+        if (s.origin_country) meta += '<span>🌍 ' + s.origin_country + '</span>';
+        if (s.num_episodes) meta += '<span>📺 ' + s.num_episodes + ' episodes</span>';
+        if (s.genres && s.genres.length) meta += '<span>🎭 ' + s.genres.join(', ') + '</span>';
+        document.getElementById('series-meta').innerHTML = meta;
         
         // Episodes
-        const episodesList = document.getElementById('episodes-list');
-        if (series.episodes?.length) {
-          episodesList.innerHTML = series.episodes.map(ep => `
+        const epList = document.getElementById('episodes-list');
+        if (s.episodes && s.episodes.length) {
+          epList.innerHTML = s.episodes.map(ep => `
             <div class="episode-item">
               <div class="episode-number">${ep.episode_number}</div>
               <div class="episode-info">
                 <h3>${ep.title}</h3>
-                <p>${ep.synopsis || 'No synopsis available.'}</p>
-                ${ep.runtime_minutes ? `<p>${ep.runtime_minutes} min</p>` : ''}
+                <p>${ep.synopsis || ''}</p>
               </div>
             </div>
           `).join('');
         } else {
-          episodesList.innerHTML = '<div class="empty-state">No episodes available</div>';
+          epList.innerHTML = '<div class="empty-state">No episodes</div>';
         }
-
       } catch (err) {
-        showToast('Failed to load series: ' + err.message, 'error');
+        showToast('Failed to load series', 'error');
       }
     }
 
-    // Load feedback/reviews
     async function loadFeedback() {
       try {
-        const data = await apiRequest(`/series/${seriesId}/feedback`);
+        const data = await apiRequest('/series/' + seriesId + '/feedback');
         
         if (data.average_rating) {
           document.getElementById('avg-rating').textContent = data.average_rating.toFixed(1);
-          document.getElementById('rating-count').textContent = `${data.rating_count} ratings`;
+          document.getElementById('rating-count').textContent = data.rating_count + ' ratings';
         }
         
-        const reviewsList = document.getElementById('reviews-list');
-        if (data.items?.length) {
-          reviewsList.innerHTML = data.items.map(r => `
+        const list = document.getElementById('reviews-list');
+        if (data.items && data.items.length) {
+          list.innerHTML = data.items.map(r => `
             <div class="review-item">
               <div class="review-header">
                 <span class="review-author">${r.account_name || 'User'}</span>
-                <span class="review-rating">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span>
+                <span class="review-rating">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span>
               </div>
-              ${r.feedback_text ? `<p class="review-text">${r.feedback_text}</p>` : ''}
+              ${r.feedback_text ? '<p class="review-text">' + r.feedback_text + '</p>' : ''}
             </div>
           `).join('');
         } else {
-          reviewsList.innerHTML = '<div class="empty-state">No reviews yet</div>';
+          list.innerHTML = '<div class="empty-state">No reviews yet</div>';
         }
-
       } catch (err) {
-        console.error('Failed to load feedback:', err);
+        console.error(err);
       }
     }
 
-    // Check watchlist status
     async function checkWatchlist() {
       try {
-        const watchlist = await apiRequest('/me/watchlist');
-        isInWatchlist = watchlist.some(w => w.series_id == seriesId);
-        updateWatchlistButton();
-      } catch (err) {
-        console.error('Failed to check watchlist:', err);
-      }
+        const list = await apiRequest('/me/watchlist');
+        inWatchlist = list.some(w => w.series_id == seriesId);
+        updateWatchlistBtn();
+      } catch (err) {}
     }
 
-    function updateWatchlistButton() {
+    function updateWatchlistBtn() {
       const btn = document.getElementById('btn-watchlist');
-      if (isInWatchlist) {
+      if (inWatchlist) {
         btn.textContent = '✓ In My List';
-        btn.classList.remove('btn-primary');
-        btn.classList.add('btn-secondary');
+        btn.className = 'btn btn-secondary';
       } else {
         btn.textContent = '+ Add to My List';
-        btn.classList.remove('btn-secondary');
-        btn.classList.add('btn-primary');
+        btn.className = 'btn btn-primary';
       }
     }
 
-    // Watchlist button
-    document.getElementById('btn-watchlist').addEventListener('click', async () => {
+    async function toggleWatchlist() {
       try {
-        if (isInWatchlist) {
-          await apiRequest(`/me/watchlist/${seriesId}`, { method: 'DELETE' });
-          showToast('Removed from watchlist', 'success');
+        if (inWatchlist) {
+          await apiRequest('/me/watchlist/' + seriesId, { method: 'DELETE' });
+          showToast('Removed from list', 'success');
         } else {
-          await apiRequest(`/me/watchlist/${seriesId}`, { method: 'POST' });
-          showToast('Added to watchlist', 'success');
+          await apiRequest('/me/watchlist/' + seriesId, { method: 'POST' });
+          showToast('Added to list', 'success');
         }
-        isInWatchlist = !isInWatchlist;
-        updateWatchlistButton();
+        inWatchlist = !inWatchlist;
+        updateWatchlistBtn();
       } catch (err) {
-        showToast('Failed: ' + err.message, 'error');
+        showToast(err.message, 'error');
       }
-    });
-
-    // Star rating input
-    const starInput = document.getElementById('star-input');
-    const stars = starInput.querySelectorAll('span');
-
-    stars.forEach(star => {
-      star.addEventListener('click', () => {
-        currentRating = parseInt(star.dataset.value);
-        updateStars();
-      });
-      
-      star.addEventListener('mouseenter', () => {
-        const hoverValue = parseInt(star.dataset.value);
-        stars.forEach((s, i) => {
-          s.textContent = i < hoverValue ? '★' : '☆';
-        });
-      });
-    });
-
-    starInput.addEventListener('mouseleave', updateStars);
-
-    function updateStars() {
-      stars.forEach((s, i) => {
-        s.textContent = i < currentRating ? '★' : '☆';
-        s.classList.toggle('active', i < currentRating);
-      });
     }
 
-    // Submit rating
-    document.getElementById('btn-submit-rating').addEventListener('click', async () => {
+    async function submitRating() {
       if (currentRating === 0) {
         showToast('Please select a rating', 'error');
         return;
       }
 
       try {
-        await apiRequest(`/series/${seriesId}/feedback`, {
+        await apiRequest('/series/' + seriesId + '/feedback', {
           method: 'POST',
           body: JSON.stringify({
             rating: currentRating,
-            feedback_text: document.getElementById('review-text').value.trim() || null,
-          }),
+            feedback_text: document.getElementById('review-text').value.trim() || null
+          })
         });
         showToast('Rating submitted!', 'success');
         document.getElementById('review-text').value = '';
         loadFeedback();
       } catch (err) {
-        showToast('Failed: ' + err.message, 'error');
+        showToast(err.message, 'error');
       }
-    });
-
-    // Initial load
-    loadSeries();
-    loadFeedback();
-    checkWatchlist();
+    }
   </script>
 </body>
 </html>

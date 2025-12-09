@@ -14,7 +14,8 @@
       <a href="home.html" class="logo small">MOVIEHUB</a>
       <div class="nav-links">
         <a href="home.html" class="nav-link active">Home</a>
-        <a href="#" class="nav-link" id="nav-admin" style="display: none;">Admin</a>
+        <a href="watchlist.html" class="nav-link">My List</a>
+        <a href="admin.html" class="nav-link" id="nav-admin" style="display: none;">Admin</a>
       </div>
     </div>
     <div class="nav-center">
@@ -101,7 +102,6 @@
     // Show admin link if user is admin
     if (isAdmin()) {
       navAdmin.style.display = "inline";
-      navAdmin.href = "admin.html";
     }
 
     // Logout handler

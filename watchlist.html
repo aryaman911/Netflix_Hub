@@ -15,6 +15,7 @@
       <div class="nav-links">
         <a href="home.html" class="nav-link">Home</a>
         <a href="watchlist.html" class="nav-link active">My List</a>
+        <a href="admin.html" class="nav-link" id="nav-admin" style="display: none;">Admin</a>
       </div>
     </div>
     <div class="nav-right">
@@ -49,12 +50,17 @@
   </main>
 
   <script type="module">
-    import { requireAuth, logout } from "./js/auth.js";
+    import { requireAuth, logout, isAdmin } from "./js/auth.js";
     import { apiRequest, formatDate, showToast } from "./js/api.js";
     import { PLACEHOLDER_POSTER } from "./js/config.js";
 
     // Auth check
     if (!requireAuth()) throw new Error("Not authenticated");
+
+    // Show admin link if admin
+    if (isAdmin()) {
+      document.getElementById("nav-admin").style.display = "inline";
+    }
 
     // Elements
     const watchlistGrid = document.getElementById("watchlist-grid");

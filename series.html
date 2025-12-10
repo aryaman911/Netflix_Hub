@@ -5,6 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MovieHub - Series</title>
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .language-section {
+            padding: 1.5rem 4%;
+            background: var(--bg-card);
+            margin: 1rem 0;
+        }
+        .language-section h3 {
+            margin-bottom: 0.75rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+        .language-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .lang-tag {
+            background: rgba(229, 9, 20, 0.2);
+            color: var(--accent);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        .series-stats {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
@@ -30,6 +72,7 @@
             <div class="series-details">
                 <h1 id="series-title">Loading...</h1>
                 <div class="series-meta" id="series-meta"></div>
+                <div class="series-stats" id="series-stats"></div>
                 <p class="series-description" id="series-description"></p>
                 <div class="series-actions">
                     <button class="btn btn-primary" id="btn-watchlist" onclick="toggleWatchlist()">+ Add to My List</button>
@@ -37,8 +80,18 @@
             </div>
         </div>
 
+        <section class="language-section" id="dub-section" style="display:none;">
+            <h3>Available Audio</h3>
+            <div class="language-tags" id="dub-tags"></div>
+        </section>
+
+        <section class="language-section" id="sub-section" style="display:none;">
+            <h3>Subtitles</h3>
+            <div class="language-tags" id="sub-tags"></div>
+        </section>
+
         <section class="rating-section">
-            <h2>Ratings & Reviews</h2>
+            <h2>Ratings and Reviews</h2>
             <div class="rating-summary">
                 <span class="rating-big" id="avg-rating">-</span>
                 <span id="rating-count">No ratings yet</span>
@@ -55,7 +108,7 @@
         </section>
 
         <section class="episodes-section">
-            <h2>Episodes</h2>
+            <h2 id="episodes-title">Episodes</h2>
             <div id="episodes-list"></div>
         </section>
     </main>
@@ -64,7 +117,6 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        // Check login
         if (!isLoggedIn()) {
             window.location.href = 'index.html';
         }
@@ -74,7 +126,6 @@
         }
         document.getElementById('nav-username').textContent = getUsername();
 
-        // Get series ID from URL
         var params = new URLSearchParams(window.location.search);
         var seriesId = params.get('id');
         if (!seriesId) window.location.href = 'home.html';
@@ -82,7 +133,6 @@
         var currentRating = 0;
         var inWatchlist = false;
 
-        // Create star inputs
         var starInput = document.getElementById('star-input');
         for (var i = 1; i <= 5; i++) {
             var star = document.createElement('span');
@@ -112,7 +162,6 @@
             });
         }
 
-        // Load data
         loadSeries();
         loadFeedback();
         checkWatchlist();
@@ -135,19 +184,39 @@
                 if (s.release_date) meta += '<span>📅 ' + s.release_date + '</span>';
                 if (s.maturity_rating) meta += '<span>🔞 ' + s.maturity_rating + '</span>';
                 if (s.origin_country) meta += '<span>🌍 ' + s.origin_country + '</span>';
-                if (s.num_episodes) meta += '<span>📺 ' + s.num_episodes + ' episodes</span>';
                 if (s.genres && s.genres.length) meta += '<span>🎭 ' + s.genres.join(', ') + '</span>';
                 document.getElementById('series-meta').innerHTML = meta;
+
+                var stats = '<div class="stat-item"><div class="stat-value">' + (s.num_episodes || 0) + '</div><div class="stat-label">Episodes</div></div>';
+                stats += '<div class="stat-item"><div class="stat-value">' + (s.avg_rating ? s.avg_rating.toFixed(1) : '-') + '</div><div class="stat-label">Rating</div></div>';
+                stats += '<div class="stat-item"><div class="stat-value">' + (s.rating_count || 0) + '</div><div class="stat-label">Reviews</div></div>';
+                document.getElementById('series-stats').innerHTML = stats;
+
+                if (s.dub_languages && s.dub_languages.length > 0) {
+                    document.getElementById('dub-section').style.display = 'block';
+                    document.getElementById('dub-tags').innerHTML = s.dub_languages.map(function(lang) {
+                        return '<span class="lang-tag">' + lang + '</span>';
+                    }).join('');
+                }
+
+                if (s.sub_languages && s.sub_languages.length > 0) {
+                    document.getElementById('sub-section').style.display = 'block';
+                    document.getElementById('sub-tags').innerHTML = s.sub_languages.map(function(lang) {
+                        return '<span class="lang-tag">' + lang + '</span>';
+                    }).join('');
+                }
                 
-                // Episodes
                 var epList = document.getElementById('episodes-list');
+                document.getElementById('episodes-title').textContent = 'Episodes (' + (s.episodes ? s.episodes.length : 0) + ')';
+                
                 if (s.episodes && s.episodes.length) {
                     epList.innerHTML = s.episodes.map(function(ep) {
                         return '<div class="episode-item">' +
                             '<div class="episode-number">' + ep.episode_number + '</div>' +
                             '<div class="episode-info">' +
                                 '<h3>' + ep.title + '</h3>' +
-                                '<p>' + (ep.synopsis || '') + '</p>' +
+                                '<p>' + (ep.synopsis || 'No synopsis available.') + '</p>' +
+                                (ep.runtime_minutes ? '<p style="color:var(--text-secondary);font-size:0.8rem;">Runtime: ' + ep.runtime_minutes + ' min</p>' : '') +
                             '</div>' +
                         '</div>';
                     }).join('');
@@ -170,7 +239,7 @@
                 
                 var list = document.getElementById('reviews-list');
                 if (data.items && data.items.length) {
-                    list.innerHTML = data.items.map(function(r) {
+                    list.innerHTML = '<h3 style="margin:1.5rem 0 1rem;">User Reviews</h3>' + data.items.map(function(r) {
                         var stars = '';
                         for (var i = 0; i < 5; i++) {
                             stars += i < r.rating ? '★' : '☆';
@@ -181,10 +250,11 @@
                                 '<span class="review-rating">' + stars + '</span>' +
                             '</div>' +
                             (r.feedback_text ? '<p class="review-text">' + r.feedback_text + '</p>' : '') +
+                            '<small style="color:var(--text-secondary);">' + r.feedback_date + '</small>' +
                         '</div>';
                     }).join('');
                 } else {
-                    list.innerHTML = '<div class="empty-state">No reviews yet</div>';
+                    list.innerHTML = '<div class="empty-state">No reviews yet. Be the first to review!</div>';
                 }
             } catch (err) {
                 console.error(err);
@@ -242,7 +312,10 @@
                 });
                 showToast('Rating submitted!', 'success');
                 document.getElementById('review-text').value = '';
+                currentRating = 0;
+                highlightStars(0);
                 loadFeedback();
+                loadSeries();
             } catch (err) {
                 showToast(err.message, 'error');
             }
